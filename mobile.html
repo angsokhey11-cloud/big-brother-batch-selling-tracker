@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#17457a">
+<title>BIG BROTHER — Batch Selling Tracker Mobile</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f7fb}
+#trackerFrame{display:block;width:100%;height:100%;border:0;background:#f4f7fb}
+#boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f4f7fb;color:#17457a;font:800 12px Arial,Helvetica,sans-serif;z-index:5}
+#boot.hide{display:none}
+</style>
+</head>
+<body>
+<div id="boot">Loading Batch Selling Tracker…</div>
+<iframe id="trackerFrame" src="index.html?mobile=1&v=20260925-mobile1" title="Batch Selling Tracker"></iframe>
+<script>
+(function(){
+'use strict';
+const frame=document.getElementById('trackerFrame');
+const boot=document.getElementById('boot');
+frame.addEventListener('load',()=>boot.classList.add('hide'));
+setTimeout(()=>boot.classList.add('hide'),5000);
+})();
+</script>
+</body>
+</html>
