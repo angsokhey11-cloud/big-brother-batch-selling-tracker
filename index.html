@@ -205,7 +205,7 @@ async function rpc(name,args){await ensureSession();const call=()=>fetch(SUPABAS
 function dateText(v){if(!v)return '—';const d=new Date(String(v).length===10?v+'T00:00:00':v);return Number.isNaN(d.getTime())?clean(v):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
 function locationText(b){return clean(b?.locationName)||clean(b?.locationCode)||'No location'}
 function batchOptionText(b){let t=clean(b.batchId)+' · '+locationText(b);if(data?.isAdmin&&clean(b.salesmanName))t+=' · '+clean(b.salesmanName);return t}
-function soldText(items){return (Array.isArray(items)?items:[]).map(x=>clean(x.productName)+' @'+qty(x.qty)).join(', ')}
+function soldText(items){return (Array.isArray(items)?items:[]).map(x=>clean(x.productName)+' ['+qty(x.qty)+']').join(', ')}
 function statusClass(v){const s=clean(v).toLowerCase();if(s==='paid')return'badge-paid';if(s.includes('partial'))return'badge-partial';if(s.includes('unpaid')||s.includes('overdue'))return'badge-unpaid';return'badge-neutral'}
 function badge(v){return '<span class="badge '+statusClass(v)+'">'+esc(v||'—')+'</span>'}
 function paymentBadge(v){return '<span class="badge badge-neutral">'+esc(v||'—')+'</span>'}
@@ -311,7 +311,7 @@ function openDetail(row){
       '<div class="detail"><small>Payment / Status</small><strong>'+esc((row?.paymentMethod||'—')+' · '+(row?.status||'—'))+'</strong></div>'+
     '</div>'+
     '<div class="detail-items">'+items.map(x=>
-      '<div class="detail-item"><strong>'+esc(x.productName||x.productCode||'Product')+'</strong><span>@'+esc(qty(x.qty))+'</span></div>'
+      '<div class="detail-item"><strong>'+esc(x.productName||x.productCode||'Product')+'</strong><span>['+esc(qty(x.qty))+']</span></div>'
     ).join('')+'</div>';
   $('detailModal').hidden=false;
 }
