@@ -248,14 +248,28 @@ function renderBatchPicker(){
   $('batchMeta').innerHTML=meta.join('');
 }
 
+function invoiceSortKey(v){
+  const s=clean(v);
+  const m=s.match(/(\d+)(?!.*\d)/);
+  return m?Number(m[1]):Number.MAX_SAFE_INTEGER;
+}
+function salesSort(a,b){
+  const da=clean(a?.activityDate);
+  const db=clean(b?.activityDate);
+  if(da!==db)return da.localeCompare(db);
+  const na=invoiceSortKey(a?.invoiceNo);
+  const nb=invoiceSortKey(b?.invoiceNo);
+  if(na!==nb)return na-nb;
+  return clean(a?.invoiceNo).localeCompare(clean(b?.invoiceNo),undefined,{numeric:true,sensitivity:'base'});
+}
 function filteredSales(){
   const list=Array.isArray(data?.sales)?data.sales:[];
   const q=clean($('searchBox').value).toLowerCase();
-  if(!q)return list;
-  return list.filter(r=>{
+  const filtered=!q?list:list.filter(r=>{
     const itemText=(Array.isArray(r.items)?r.items:[]).map(x=>clean(x.productName)+' '+clean(x.productCode)).join(' ');
     return [r.customerName,r.invoiceNo,r.paymentMethod,r.status,itemText].some(v=>clean(v).toLowerCase().includes(q));
   });
+  return filtered.slice().sort(salesSort);
 }
 
 function renderSales(){
