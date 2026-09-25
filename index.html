@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17457a">
+<title>BIG BROTHER — Batch Selling Tracker</title>
+<style>
+:root{
+  --navy:#17457a;--blue:#2f6fed;--bg:#f4f7fb;--line:#d9e2ef;--text:#172b4d;
+  --muted:#667085;--green:#18864b;--red:#c93c46;--orange:#e87512;--card:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+body{padding:18px}
+.app{max-width:1180px;margin:0 auto}
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+.hero h1{margin:0;color:var(--navy);font-size:25px;line-height:1.1}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:12px}
+.btn{border:1px solid #cfd8e5;border-radius:9px;background:#fff;color:var(--navy);padding:9px 13px;font-weight:800;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:default}
+.profile,.error,.loading{border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11px}
+.profile{background:#eaf3ff;border:1px solid #c9def9;color:var(--navy);font-weight:800}
+.error{background:#fff2f3;border:1px solid #f2c5ca;color:#9b2530;font-weight:700}
+.loading{background:#fff;border:1px solid var(--line);color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 15px rgba(23,69,122,.04)}
+.filter-card{padding:12px;margin-bottom:10px}
+.filter-grid{display:grid;grid-template-columns:minmax(260px,1.5fr) minmax(220px,1fr);gap:10px;align-items:end}
+.field label{display:block;margin:0 0 5px;color:#53667b;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px}
+.field select,.field input{
+  width:100%;min-height:40px;border:1px solid #cfd8e5;border-radius:9px;background:#fff;
+  color:var(--navy);padding:8px 10px;font:inherit;font-size:12px;font-weight:800;outline:none;
+}
+.field input{font-weight:700;color:var(--text)}
+.field input:focus,.field select:focus{border-color:#8db8ee;box-shadow:0 0 0 3px rgba(47,111,237,.08)}
+.batch-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{padding:5px 8px;border-radius:999px;background:#f3f7fc;border:1px solid #dfe7f1;color:#53667b;font-size:9px;font-weight:800}
+.table-card{overflow:hidden;margin-bottom:10px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid #edf1f5}
+.section-head strong{color:var(--navy);font-size:13px}
+.section-head span{color:var(--muted);font-size:9px;font-weight:800}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{padding:9px 8px;background:#f5f8fc;color:#66778a;font-size:8px;text-transform:uppercase;letter-spacing:.2px;text-align:left;border-bottom:1px solid #dce5ef}
+td{padding:9px 8px;border-bottom:1px solid #edf1f5;font-size:10.5px;vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f8fbff}
+.customer{font-weight:900;color:var(--navy)}
+.invoice{font-weight:900;color:#2f6fed;white-space:nowrap}
+.sold-stock{color:#2f4157;font-weight:750;line-height:1.35}
+.badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:8.5px;font-weight:900;white-space:nowrap}
+.badge-paid{background:#e9f7ef;color:#137a45}
+.badge-unpaid,.badge-overdue{background:#fff0f1;color:#b73742}
+.badge-partial{background:#fff5e9;color:#b86611}
+.badge-neutral{background:#eef3f8;color:#607286}
+.empty{padding:28px 12px;text-align:center;color:#7a8b9f;font-size:11px}
+.summary-card{padding-bottom:5px}
+.summary-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+.summary-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid #edf1f5}
+.summary-row:nth-last-child(-n+2){border-bottom:0}
+.summary-row strong{min-width:0;color:var(--navy);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.summary-row span{color:var(--green);font-size:11px;font-weight:900;white-space:nowrap}
+.footer{text-align:center;color:#8a98a9;font-size:9px;padding:9px}
+.mobile-picker{display:none;position:relative}
+.mobile-picker-btn{
+  width:100%;min-height:46px;border:1px solid #cfd8e5;border-radius:9px;background:#fff;padding:7px 10px;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'main arrow' 'meta arrow';
+  gap:3px 8px;text-align:left;color:var(--navy)
+}
+.mobile-picker-main{grid-area:main;min-width:0;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:900}
+.mobile-picker-main strong{flex:0 0 auto}
+.mobile-picker-location{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue);font-size:9.5px;font-weight:900}
+.mobile-picker-meta{grid-area:meta;color:#738397;font-size:8.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mobile-picker-arrow{grid-area:arrow;align-self:center;color:#5e7187;font-size:13px}
+.mobile-picker.open .mobile-picker-arrow{transform:rotate(180deg)}
+.mobile-picker-menu{
+  position:absolute;z-index:999;left:0;right:0;top:calc(100% + 5px);max-height:220px;overflow:auto;padding:4px;
+  border:1px solid #cfd8e5;border-radius:10px;background:#fff;box-shadow:0 10px 24px rgba(23,63,119,.18)
+}
+.mobile-picker-menu[hidden]{display:none}
+.mobile-picker-option{width:100%;border:0;border-bottom:1px solid #edf1f5;border-radius:7px;background:#fff;padding:8px;text-align:left;color:var(--navy)}
+.mobile-picker-option:last-child{border-bottom:0}.mobile-picker-option.selected{background:#eef6ff}
+.mobile-picker-option-top{display:flex;justify-content:space-between;gap:8px}.mobile-picker-option strong{font-size:10.5px}
+.mobile-picker-option-location{max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue);font-size:9px;font-weight:900;text-align:right}
+.mobile-picker-option-meta{margin-top:4px;color:#738397;font-size:8.5px;font-weight:800}
+.modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(11,30,52,.45);display:flex;align-items:center;justify-content:center;padding:14px}
+.modal-backdrop[hidden]{display:none}
+.modal{width:min(560px,100%);max-height:86vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid #d7e0eb;box-shadow:0 20px 50px rgba(11,30,52,.24)}
+.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #edf1f5}
+.modal-head strong{color:var(--navy);font-size:14px}.close{border:0;background:#eef3f8;border-radius:8px;width:30px;height:30px;color:var(--navy);font-weight:900;cursor:pointer}
+.modal-body{padding:12px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px}
+.detail{padding:8px;border:1px solid #e1e8f0;border-radius:9px;background:#f9fbfd}.detail small{display:block;color:#7b8998;font-size:8px;font-weight:900;text-transform:uppercase}.detail strong{display:block;margin-top:3px;color:#173f77;font-size:10.5px}
+.detail-items{border:1px solid #e1e8f0;border-radius:9px;overflow:hidden}.detail-item{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid #edf1f5;font-size:10px}.detail-item:last-child{border-bottom:0}.detail-item strong{color:var(--navy)}.detail-item span{font-weight:900;color:var(--green)}
+@media(max-width:700px){
+  body{padding:7px 8px 18px}.hero{align-items:center;margin-bottom:7px}.hero h1{font-size:18px}.hero p{display:none}.btn{padding:7px 10px;font-size:10px}
+  .profile{font-size:10px;margin-bottom:7px}.filter-card{padding:9px;margin-bottom:7px;overflow:visible;position:relative;z-index:20}
+  .filter-grid{grid-template-columns:1fr;gap:7px}.field label{font-size:8px}.desktop-batch{display:none}.mobile-picker{display:block}
+  .batch-meta{margin-top:7px}.chip{font-size:8px;padding:4px 6px}.table-card{margin-bottom:7px;overflow:visible;position:relative;z-index:1}
+  .table-wrap{overflow:visible}table{display:block;min-width:0}thead{display:none}tbody{display:block}
+  tbody tr{display:block;margin:0;border-bottom:1px solid #dfe7f0;padding:8px 10px;background:#fff}
+  tbody tr:last-child{border-bottom:0}td{display:block;border:0;padding:0;font-size:9.5px}
+  td[data-col="date"]{float:right;color:#7b8998;font-size:8.5px}
+  td[data-col="customer"]{padding-right:76px;font-size:10.5px}
+  td[data-col="invoice"]{margin-top:3px;font-size:9.5px}
+  td[data-col="sold"]{clear:both;margin-top:6px;padding:7px 8px;background:#f7f9fc;border-radius:8px;font-size:9px}
+  td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
+  .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
+  .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
+  .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hero">
+    <div>
+      <h1>📦 Batch Selling Tracker</h1>
+      <p>Trace where each batch sale went by customer, invoice, and product.</p>
+    </div>
+    <button id="refreshBtn" class="btn" type="button">↻ Refresh</button>
+  </div>
+
+  <div id="profile" class="profile">Loading staff access…</div>
+  <div id="error" class="error" hidden></div>
+  <div id="loading" class="loading">Loading batch selling activity…</div>
+
+  <main id="content" hidden>
+    <section class="card filter-card">
+      <div class="filter-grid">
+        <div class="field">
+          <label for="batchSelect">Selling Batch</label>
+          <select id="batchSelect" class="desktop-batch"></select>
+          <div id="mobilePicker" class="mobile-picker">
+            <button id="mobilePickerBtn" class="mobile-picker-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="mobile-picker-main"><strong id="mobileBatchId">No batch</strong><span id="mobileBatchLocation" class="mobile-picker-location"></span></span>
+              <span id="mobileBatchMeta" class="mobile-picker-meta"></span>
+              <span class="mobile-picker-arrow">⌄</span>
+            </button>
+            <div id="mobilePickerMenu" class="mobile-picker-menu" role="listbox" hidden></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="searchBox">Find Customer / Invoice / Product</label>
+          <input id="searchBox" type="search" placeholder="Search…">
+        </div>
+      </div>
+      <div id="batchMeta" class="batch-meta"></div>
+    </section>
+
+    <section class="card table-card">
+      <div class="section-head">
+        <strong>Customer Selling Stock</strong>
+        <span id="rowCount">0 invoices</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Customer</th><th>Invoice No.</th><th>Sold Stock</th><th>Payment</th><th>Status</th></tr></thead>
+          <tbody id="salesRows"></tbody>
+        </table>
+      </div>
+      <div id="emptyRows" class="empty" hidden>No selling records found for this batch.</div>
+    </section>
+
+    <section class="card summary-card">
+      <div class="section-head">
+        <strong>Live Product Sold Summary</strong>
+        <span id="summaryCount">0 products</span>
+      </div>
+      <div id="productSummary" class="summary-list"></div>
+      <div id="emptySummary" class="empty" hidden>No sold products yet.</div>
+    </section>
+  </main>
+
+  <div class="footer">BIG BROTHER Accounting System · Sales Support</div>
+</div>
+
+<div id="detailModal" class="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-head"><strong id="detailTitle">Selling Detail</strong><button id="closeModal" class="close" type="button">×</button></div>
+    <div id="detailBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const SUPABASE_URL='https://sjfhlaclgmkwwofzstok.supabase.co';
+const SUPABASE_KEY='sb_publishable_w762jR65CWwlO30fKQsYOw_6L9grx8S';
+const SESSION_KEY='BB_SUPABASE_DEV_SESSION_V1';
+const $=id=>document.getElementById(id);
+const clean=v=>String(v==null?'':v).trim();
+const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+const esc=v=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+const qty=v=>num(v).toLocaleString('en-US',{maximumFractionDigits:2});
+let session=null,data=null,selectedBatchId='',loadingNow=false;
+
+function readSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(_){return null}}
+function saveSession(v){try{if(!v)return;if(v.expires_in&&!v.expires_at)v.expires_at=Math.floor(Date.now()/1000)+Number(v.expires_in);localStorage.setItem(SESSION_KEY,JSON.stringify(v))}catch(_){}}
+async function parse(r){const t=await r.text();let b={};try{b=t?JSON.parse(t):{}}catch(_){b={message:t}}if(!r.ok)throw new Error(b.message||b.error_description||b.error||('Request failed ('+r.status+')'));return b}
+async function refreshSession(){const c=readSession();if(!c?.refresh_token)throw new Error('Please sign in to BIG BROTHER Dashboard first.');const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:c.refresh_token}),cache:'no-store'});const n=await parse(r);saveSession(n);return n}
+async function ensureSession(){session=readSession();if(!session?.access_token)throw new Error('Please sign in to BIG BROTHER Dashboard first.');if(session.expires_at&&Number(session.expires_at)<Math.floor(Date.now()/1000)+45)await refreshSession();return session}
+async function rpc(name,args){await ensureSession();const call=()=>fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(args||{}),cache:'no-store'});let r=await call();if(r.status===401){await refreshSession();r=await call()}return parse(r)}
+
+function dateText(v){if(!v)return '—';const d=new Date(String(v).length===10?v+'T00:00:00':v);return Number.isNaN(d.getTime())?clean(v):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
+function locationText(b){return clean(b?.locationName)||clean(b?.locationCode)||'No location'}
+function batchOptionText(b){let t=clean(b.batchId)+' · '+locationText(b);if(data?.isAdmin&&clean(b.salesmanName))t+=' · '+clean(b.salesmanName);return t}
+function soldText(items){return (Array.isArray(items)?items:[]).map(x=>clean(x.productName)+' @'+qty(x.qty)).join(', ')}
+function statusClass(v){const s=clean(v).toLowerCase();if(s==='paid')return'badge-paid';if(s.includes('partial'))return'badge-partial';if(s.includes('unpaid')||s.includes('overdue'))return'badge-unpaid';return'badge-neutral'}
+function badge(v){return '<span class="badge '+statusClass(v)+'">'+esc(v||'—')+'</span>'}
+function paymentBadge(v){return '<span class="badge badge-neutral">'+esc(v||'—')+'</span>'}
+
+function closePicker(){
+  $('mobilePicker').classList.remove('open');
+  $('mobilePickerMenu').hidden=true;
+  $('mobilePickerBtn').setAttribute('aria-expanded','false');
+}
+function renderBatchPicker(){
+  const list=Array.isArray(data?.batches)?data.batches:[];
+  const selected=data?.selectedBatch||list.find(x=>clean(x.batchId)===clean(selectedBatchId))||list[0]||null;
+  const select=$('batchSelect');
+
+  select.innerHTML=list.length?list.map(b=>'<option value="'+esc(b.batchId)+'">'+esc(batchOptionText(b))+'</option>').join(''):'<option value="">No selling batch</option>';
+  select.disabled=!list.length;
+  if(selected)select.value=clean(selected.batchId);
+
+  $('mobilePickerBtn').disabled=!list.length;
+  $('mobileBatchId').textContent=selected?clean(selected.batchId):'No selling batch';
+  $('mobileBatchLocation').textContent=selected?locationText(selected):'';
+  $('mobileBatchMeta').textContent=selected?(dateText(selected.batchDate)+(data?.isAdmin&&clean(selected.salesmanName)?' · '+clean(selected.salesmanName):'')):'';
+
+  $('mobilePickerMenu').innerHTML=list.map(b=>{
+    const active=selected&&clean(b.batchId)===clean(selected.batchId);
+    const meta=dateText(b.batchDate)+(data?.isAdmin&&clean(b.salesmanName)?' · '+clean(b.salesmanName):'');
+    return '<button type="button" class="mobile-picker-option'+(active?' selected':'')+'" data-batch-id="'+esc(b.batchId)+'" role="option" aria-selected="'+(active?'true':'false')+'">'+
+      '<span class="mobile-picker-option-top"><strong>'+esc(b.batchId)+'</strong><span class="mobile-picker-option-location">'+esc(locationText(b))+'</span></span>'+
+      '<span class="mobile-picker-option-meta">'+esc(meta)+'</span>'+
+    '</button>';
+  }).join('');
+
+  const meta=[];
+  if(selected){
+    meta.push('<span class="chip">'+esc(locationText(selected))+'</span>');
+    meta.push('<span class="chip">'+esc(dateText(selected.batchDate))+'</span>');
+    if(data?.isAdmin&&clean(selected.salesmanName))meta.push('<span class="chip">'+esc(selected.salesmanName)+'</span>');
+    meta.push('<span class="chip">'+esc(selected.status||'Batch')+'</span>');
+  }
+  $('batchMeta').innerHTML=meta.join('');
+}
+
+function filteredSales(){
+  const list=Array.isArray(data?.sales)?data.sales:[];
+  const q=clean($('searchBox').value).toLowerCase();
+  if(!q)return list;
+  return list.filter(r=>{
+    const itemText=(Array.isArray(r.items)?r.items:[]).map(x=>clean(x.productName)+' '+clean(x.productCode)).join(' ');
+    return [r.customerName,r.invoiceNo,r.paymentMethod,r.status,itemText].some(v=>clean(v).toLowerCase().includes(q));
+  });
+}
+
+function renderSales(){
+  const rows=filteredSales();
+  $('rowCount').textContent=rows.length+' invoice'+(rows.length===1?'':'s');
+  $('emptyRows').hidden=rows.length>0;
+  $('salesRows').innerHTML=rows.map((r,i)=>
+    '<tr data-row-index="'+i+'" data-invoice-key="'+esc(clean(r.invoiceId)||clean(r.invoiceNo))+'">'+
+      '<td data-col="date">'+esc(dateText(r.activityDate))+'</td>'+
+      '<td data-col="customer" class="customer">'+esc(r.customerName||'Unknown Customer')+'</td>'+
+      '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
+      '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+
+      '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
+      '<td data-col="status">'+badge(r.status)+'</td>'+
+    '</tr>'
+  ).join('');
+}
+
+function renderSummary(){
+  const list=Array.isArray(data?.productSummary)?data.productSummary:[];
+  $('summaryCount').textContent=list.length+' product'+(list.length===1?'':'s');
+  $('emptySummary').hidden=list.length>0;
+  $('productSummary').innerHTML=list.map(x=>
+    '<div class="summary-row"><strong title="'+esc(x.productName)+'">'+esc(x.productName||x.productCode||'Unknown Product')+'</strong><span>'+esc(qty(x.soldQty))+'</span></div>'
+  ).join('');
+}
+
+function openDetail(row){
+  const b=data?.selectedBatch||{};
+  const items=Array.isArray(row?.items)?row.items:[];
+  $('detailTitle').textContent=(row?.invoiceNo||'Selling Detail')+' · '+(row?.customerName||'');
+  $('detailBody').innerHTML=
+    '<div class="detail-grid">'+
+      '<div class="detail"><small>Batch</small><strong>'+esc(b.batchId||'—')+'</strong></div>'+
+      '<div class="detail"><small>Location</small><strong>'+esc(locationText(b))+'</strong></div>'+
+      '<div class="detail"><small>Customer</small><strong>'+esc(row?.customerName||'—')+'</strong></div>'+
+      '<div class="detail"><small>Invoice</small><strong>'+esc(row?.invoiceNo||'—')+'</strong></div>'+
+      '<div class="detail"><small>Date</small><strong>'+esc(dateText(row?.activityDate))+'</strong></div>'+
+      '<div class="detail"><small>Payment / Status</small><strong>'+esc((row?.paymentMethod||'—')+' · '+(row?.status||'—'))+'</strong></div>'+
+    '</div>'+
+    '<div class="detail-items">'+items.map(x=>
+      '<div class="detail-item"><strong>'+esc(x.productName||x.productCode||'Product')+'</strong><span>@'+esc(qty(x.qty))+'</span></div>'
+    ).join('')+'</div>';
+  $('detailModal').hidden=false;
+}
+
+function render(){
+  const st=data?.staff||{};
+  $('profile').textContent=data?.isAdmin
+    ? '🛡 Admin · All selling batches'
+    : '👤 '+(st.staffName||'Staff')+' · '+(st.staffId||'—')+' · Your assigned selling batches only';
+  renderBatchPicker();
+  renderSales();
+  renderSummary();
+  $('loading').hidden=true;
+  $('content').hidden=false;
+}
+
+async function load(showLoader){
+  if(loadingNow)return;
+  loadingNow=true;
+  $('refreshBtn').disabled=true;
+  $('error').hidden=true;
+  if(showLoader&&!data)$('loading').hidden=false;
+  try{
+    const next=await rpc('bb_sales_support_batch_selling_tracker',{p_batch_id:selectedBatchId||null});
+    if(!next?.success)throw new Error('Could not load Batch Selling Tracker.');
+    data=next;
+    selectedBatchId=clean(next?.selectedBatch?.batchId)||selectedBatchId;
+    render();
+  }catch(e){
+    console.error(e);
+    $('error').textContent=e?.message||String(e);
+    $('error').hidden=false;
+    if(!data){$('loading').hidden=true;$('content').hidden=true}
+  }finally{
+    $('refreshBtn').disabled=false;
+    loadingNow=false;
+  }
+}
+
+$('refreshBtn').onclick=()=>load(false);
+$('searchBox').oninput=renderSales;
+$('batchSelect').onchange=()=>{
+  selectedBatchId=$('batchSelect').value;
+  $('searchBox').value='';
+  closePicker();
+  load(false);
+};
+$('mobilePickerBtn').onclick=()=>{
+  const open=!$('mobilePickerMenu').hidden;
+  if(open)closePicker();
+  else{$('mobilePicker').classList.add('open');$('mobilePickerMenu').hidden=false;$('mobilePickerBtn').setAttribute('aria-expanded','true')}
+};
+$('mobilePickerMenu').onclick=e=>{
+  const btn=e.target.closest('.mobile-picker-option[data-batch-id]');
+  if(!btn)return;
+  selectedBatchId=clean(btn.dataset.batchId);
+  $('batchSelect').value=selectedBatchId;
+  $('searchBox').value='';
+  closePicker();
+  load(false);
+};
+document.addEventListener('click',e=>{if(!$('mobilePicker').contains(e.target))closePicker()});
+$('salesRows').onclick=e=>{
+  const tr=e.target.closest('tr[data-row-index]');
+  if(!tr)return;
+  const rows=filteredSales();
+  const row=rows[Number(tr.dataset.rowIndex)];
+  if(row)openDetail(row);
+};
+$('closeModal').onclick=()=>{$('detailModal').hidden=true};
+$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('detailModal').hidden=true;closePicker()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load(false)});
+setInterval(()=>{if(document.visibilityState==='visible')load(false)},10000);
+load(true);
+})();
+</script>
+</body>
+</html>
