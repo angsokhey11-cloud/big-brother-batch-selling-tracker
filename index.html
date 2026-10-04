@@ -289,7 +289,7 @@ async function openInvoiceFromTracker(row){
               '#detailContent{margin:0!important;padding:0!important;}'+
               '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}'+
               (window.innerWidth<=700
-                ? '.history-invoice-wrap{padding:2px!important;}#detailModal .modal-card{min-height:100vh!important;}.history-final-invoice{width:100%!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;}'
+                ? '.history-invoice-wrap{padding:0!important;overflow:hidden!important;position:relative!important;}#detailModal .modal-card{min-height:100vh!important;}#historyInvoicePrintArea{position:absolute!important;left:0!important;top:0!important;width:794px!important;min-width:794px!important;max-width:794px!important;margin:0!important;transform-origin:top left!important;transform:scale(var(--bb-mobile-invoice-scale,.5))!important;}.history-final-invoice{width:794px!important;min-width:794px!important;max-width:794px!important;margin:0!important;}'
                 : '');
             doc.head.appendChild(style);
           }
@@ -297,6 +297,25 @@ async function openInvoiceFromTracker(row){
           modal.querySelector('.modal-head')?.setAttribute('style','display:none!important');
           modal.querySelector('.history-invoice-actions')?.setAttribute('style','display:none!important');
           doc.querySelector('.main')?.setAttribute('style','display:none!important');
+          if(window.innerWidth<=700){
+            const area=doc.getElementById('historyInvoicePrintArea');
+            const invoice=doc.getElementById('historyInvoiceDocument');
+            const wrap=modal.querySelector('.history-invoice-wrap');
+            if(area&&invoice&&wrap){
+              const available=Math.max(280,frame.clientWidth||window.innerWidth);
+              const scale=Math.min(1,available/794);
+              area.style.setProperty('--bb-mobile-invoice-scale',String(scale));
+              const last=invoice.querySelector('.history-final-signature-grid')||invoice.lastElementChild;
+              const invoiceRect=invoice.getBoundingClientRect();
+              const lastRect=last?.getBoundingClientRect();
+              const unscaledContentHeight=lastRect?.height
+                ? Math.max(560,(lastRect.bottom-invoiceRect.top)/scale+24)
+                : Math.max(700,invoice.scrollHeight);
+              wrap.style.height=Math.ceil(unscaledContentHeight*scale)+'px';
+              doc.documentElement.style.overflowX='hidden';
+              doc.body.style.overflowX='hidden';
+            }
+          }
           clearInterval(timer);
         }catch(error){
           if(tries>=120){clearInterval(timer);console.warn('Embedded invoice cleanup:',error)}
