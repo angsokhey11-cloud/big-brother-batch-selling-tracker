@@ -410,7 +410,7 @@ function renderSales(){
       '<td data-col="cash-payment" class="money-cell">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
       '<td data-col="bank-payment" class="money-cell">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
       '<td data-col="balance" class="money-cell">'+esc(money(r.outstanding,r.currency))+'</td>'+
-      '<td class="mobile-money-line" data-col="mobile-money"><span><b>Total</b>'+esc(money(r.invoiceTotal,r.currency))+'</span><span><b>Cash</b>'+esc(paymentAmounts(r.cashPayments))+'</span><span><b>Bank</b>'+esc(paymentAmounts(r.bankPayments))+'</span><span><b>Bal</b>'+esc(money(r.outstanding,r.currency))+'</span></td>'+
+      '<td class="mobile-money-line" data-col="mobile-money"><span><b>Total</b>'+esc(money(r.invoiceTotal,r.currency))+'</span><span><b>Cash</b>'+esc(paymentAmounts(r.cashPayments))+'</span><span><b>Bank</b>'+esc(paymentAmounts(r.bankPayments))+'</span>'+((Math.abs(num(r.outstanding)-num(r.invoiceTotal))>0.000001)?'<span><b>Bal</b>'+esc(money(r.outstanding,r.currency))+'</span>':'')+'</td>'+
       '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
       '<td data-col="status">'+badge(r.status)+'</td>'+
     '</tr>'
