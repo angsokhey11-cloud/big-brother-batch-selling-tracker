@@ -47,7 +47,7 @@ tbody tr{cursor:pointer}
 tbody tr:hover{background:#f8fbff}
 .customer{font-weight:900;color:var(--navy)}.invoice-open-link{border:0;background:none;padding:0;margin:0;font:inherit;font-weight:inherit;color:inherit;cursor:pointer;text-align:left}.invoice-open-link:hover{text-decoration:underline}
 .invoice{font-weight:900;color:#2f6fed;white-space:nowrap}
-.sold-stock{color:#2f4157;font-weight:750;line-height:1.35}.money-cell{font-weight:850;white-space:nowrap;color:#203f63}
+.sold-stock{color:#2f4157;font-weight:750;line-height:1.35}.money-cell{font-weight:850;white-space:nowrap;color:#203f63}.mobile-money-line{display:none}
 .badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:8.5px;font-weight:900;white-space:nowrap}
 .badge-paid{background:#e9f7ef;color:#137a45}
 .badge-unpaid,.badge-overdue{background:#fff0f1;color:#b73742}
@@ -103,7 +103,7 @@ tbody tr:hover{background:#f8fbff}
   td[data-col="customer"]{padding-right:76px;font-size:10.5px}
   td[data-col="invoice"]{margin-top:3px;font-size:9.5px}
   td[data-col="sold"]{clear:both;margin-top:6px;padding:7px 8px;background:#f7f9fc;border-radius:8px;font-size:9px}
-  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"],td[data-col="balance"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}.mobile-empty-payment{display:none!important}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="balance"]::before{content:"Balance: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
+  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"],td[data-col="balance"]{display:none!important}.mobile-money-line{display:flex!important;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;padding:6px 8px;background:#f8fafc;border-radius:8px;font-size:9px;font-weight:850;color:#203f63}.mobile-money-line span{white-space:nowrap}.mobile-money-line b{color:#53667b;font-weight:900;margin-right:2px}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
   .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
   .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
   .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
@@ -407,9 +407,10 @@ function renderSales(){
       '<td data-col="customer" class="customer">'+esc(r.customerName||'Unknown Customer')+'</td>'+
       '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
       '<td data-col="invoice-total" class="money-cell">'+esc(money(r.invoiceTotal,r.currency))+'</td>'+ 
-      '<td data-col="cash-payment" class="money-cell'+((Array.isArray(r.cashPayments)&&r.cashPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
-      '<td data-col="bank-payment" class="money-cell'+((Array.isArray(r.bankPayments)&&r.bankPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
+      '<td data-col="cash-payment" class="money-cell">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
+      '<td data-col="bank-payment" class="money-cell">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
       '<td data-col="balance" class="money-cell">'+esc(money(r.outstanding,r.currency))+'</td>'+
+      '<td class="mobile-money-line" data-col="mobile-money"><span><b>Total</b>'+esc(money(r.invoiceTotal,r.currency))+'</span><span><b>Cash</b>'+esc(paymentAmounts(r.cashPayments))+'</span><span><b>Bank</b>'+esc(paymentAmounts(r.bankPayments))+'</span><span><b>Bal</b>'+esc(money(r.outstanding,r.currency))+'</span></td>'+
       '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
       '<td data-col="status">'+badge(r.status)+'</td>'+
     '</tr>'
