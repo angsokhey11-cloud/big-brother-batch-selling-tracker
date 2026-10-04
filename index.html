@@ -39,7 +39,7 @@ body{padding:18px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid #edf1f5}
 .section-head strong{color:var(--navy);font-size:13px}
 .section-head span{color:var(--muted);font-size:9px;font-weight:800}
-.table-wrap{overflow:auto}
+.table-wrap{overflow:auto}#salesRows tr{cursor:pointer}#salesRows tr:hover{background:#f8fbff}
 table{width:100%;border-collapse:collapse;min-width:820px}
 th{padding:9px 8px;background:#f5f8fc;color:#66778a;font-size:8px;text-transform:uppercase;letter-spacing:.2px;text-align:left;border-bottom:1px solid #dce5ef}
 td{padding:9px 8px;border-bottom:1px solid #edf1f5;font-size:10.5px;vertical-align:top}
@@ -328,8 +328,8 @@ function renderSales(){
   $('salesRows').innerHTML=rows.map((r,i)=>
     '<tr data-row-index="'+i+'" data-invoice-key="'+esc(clean(r.invoiceId)||clean(r.invoiceNo))+'">'+
       '<td data-col="date">'+esc(dateText(r.activityDate))+'</td>'+
-      '<td data-col="customer" class="customer"><button type="button" class="invoice-open-link" data-open-invoice="'+i+'">'+esc(r.customerName||'Unknown Customer')+'</button></td>'+
-      '<td data-col="invoice" class="invoice"><button type="button" class="invoice-open-link" data-open-invoice="'+i+'">'+esc(r.invoiceNo||'—')+'</button></td>'+
+      '<td data-col="customer" class="customer">'+esc(r.customerName||'Unknown Customer')+'</td>'+
+      '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
       '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+ 
       '<td data-col="invoice-total" class="money-cell">'+esc(money(r.invoiceTotal,r.currency))+'</td>'+ 
       '<td data-col="cash-payment" class="money-cell'+((Array.isArray(r.cashPayments)&&r.cashPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
@@ -430,13 +430,11 @@ $('mobilePickerMenu').onclick=e=>{
 };
 document.addEventListener('click',e=>{if(!$('mobilePicker').contains(e.target))closePicker()});
 $('salesRows').onclick=e=>{
-  const openBtn=e.target.closest('[data-open-invoice]');
-  if(openBtn){e.stopPropagation();const row=filteredSales()[Number(openBtn.dataset.openInvoice)];if(row)void openInvoiceFromTracker(row);return;}
   const tr=e.target.closest('tr[data-row-index]');
   if(!tr)return;
   const rows=filteredSales();
   const row=rows[Number(tr.dataset.rowIndex)];
-  if(row)openDetail(row);
+  if(row)void openInvoiceFromTracker(row);
 };
 $('closeModal').onclick=()=>{$('detailModal').hidden=true};
 $('closeInvoicePreview').onclick=closeInvoicePreview;
