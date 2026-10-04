@@ -247,7 +247,7 @@ async function openInvoiceFromTracker(row){
     }
     // No real picture: embed Invoice History's existing live preview.
     // Nothing is generated or stored by the tracker.
-    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&embed=1&v=20261004-tracker-preview2';
+    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&embed=1&v=20261004-clean-embed-preview1';
     $('invoicePreviewBody').innerHTML='<iframe title="Invoice History preview '+esc(invoiceNo)+'" src="'+esc(url)+'"></iframe>';
   }catch(error){
     console.error(error);
