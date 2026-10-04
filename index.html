@@ -247,8 +247,29 @@ async function openInvoiceFromTracker(row){
     }
     // No real picture: embed Invoice History's existing live preview.
     // Nothing is generated or stored by the tracker.
-    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&embed=1&v=20261004-clean-embed-preview1';
-    $('invoicePreviewBody').innerHTML='<iframe title="Invoice History preview '+esc(invoiceNo)+'" src="'+esc(url)+'"></iframe>';
+    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&embed=1&v=20261004-clean-embed-preview2';
+    $('invoicePreviewBody').innerHTML='<iframe id="trackerInvoiceHistoryFrame" title="Invoice History preview '+esc(invoiceNo)+'" src="'+esc(url)+'"></iframe>';
+    const frame=$('trackerInvoiceHistoryFrame');
+    frame.addEventListener('load',()=>{
+      // Same-origin cleanup: Batch Tracker owns the outer modal, so remove
+      // Invoice History's duplicate modal chrome even if its page cache is stale.
+      try{
+        const doc=frame.contentDocument;
+        if(!doc)return;
+        const style=doc.createElement('style');
+        style.id='bbTrackerEmbeddedInvoiceCleanup';
+        style.textContent=
+          'html,body{margin:0!important;background:#eef3f8!important;overflow:auto!important;}'+
+          '.main,.sidebar,#floatingActionMenu,#editModal{display:none!important;}'+
+          '#detailModal.modal{position:static!important;inset:auto!important;display:block!important;background:transparent!important;padding:0!important;overflow:visible!important;z-index:auto!important;}'+
+          '#detailModal .modal-card{width:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;overflow:visible!important;}'+
+          '#detailModal .modal-head,.history-invoice-actions{display:none!important;}'+
+          '#detailLoading{min-height:220px!important;display:flex;align-items:center;justify-content:center;background:#eef3f8!important;}'+
+          '#detailContent{margin:0!important;padding:0!important;}'+
+          '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}';
+        doc.head.appendChild(style);
+      }catch(error){console.warn('Embedded invoice cleanup:',error)}
+    },{once:true});
   }catch(error){
     console.error(error);
     $('invoicePreviewBody').innerHTML='<div class="invoice-preview-loading">'+esc(error?.message||'Cannot open invoice preview.')+'</div>';
