@@ -271,8 +271,12 @@ async function openInvoiceFromTracker(row){
           if(!doc)return;
           const modal=doc.getElementById('detailModal');
           const printArea=doc.getElementById('historyInvoicePrintArea');
-          if(!modal||!printArea){
-            if(tries>=120)clearInterval(timer);
+          const invoiceDoc=doc.getElementById('historyInvoiceDocument');
+          const detailContent=doc.getElementById('detailContent');
+          // Do not clean the page until Invoice History has actually rendered
+          // the requested invoice. On slower phones the shell appears first.
+          if(!modal||!printArea||!invoiceDoc||!detailContent||detailContent.style.display==='none'){
+            if(tries>=180)clearInterval(timer);
             return;
           }
           let style=doc.getElementById('bbTrackerEmbeddedInvoiceCleanup');
@@ -299,7 +303,7 @@ async function openInvoiceFromTracker(row){
           doc.querySelector('.main')?.setAttribute('style','display:none!important');
           clearInterval(timer);
         }catch(error){
-          if(tries>=120){clearInterval(timer);console.warn('Embedded invoice cleanup:',error)}
+          if(tries>=180){clearInterval(timer);console.warn('Embedded invoice cleanup:',error)}
         }
       },100);
     });
