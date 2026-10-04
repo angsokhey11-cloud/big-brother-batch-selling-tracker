@@ -103,7 +103,7 @@ tbody tr:hover{background:#f8fbff}
   td[data-col="customer"]{padding-right:76px;font-size:10.5px}
   td[data-col="invoice"]{margin-top:3px;font-size:9.5px}
   td[data-col="sold"]{clear:both;margin-top:6px;padding:7px 8px;background:#f7f9fc;border-radius:8px;font-size:9px}
-  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}.mobile-empty-payment{display:none!important}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
+  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"],td[data-col="balance"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}.mobile-empty-payment{display:none!important}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="balance"]::before{content:"Balance: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
   .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
   .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
   .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
@@ -162,7 +162,7 @@ tbody tr:hover{background:#f8fbff}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Customer</th><th>Invoice No.</th><th>Sold Stock</th><th>Total Invoice</th><th>Cash Payment</th><th>Bank Payment</th><th>Payment</th><th>Status</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Invoice No.</th><th>Total Invoice</th><th>Cash Payment</th><th>Bank Payment</th><th>Balance</th><th>Payment</th><th>Status</th></tr></thead>
           <tbody id="salesRows"></tbody>
         </table>
       </div>
@@ -392,8 +392,7 @@ function filteredSales(){
   const list=Array.isArray(data?.sales)?data.sales:[];
   const q=clean($('searchBox').value).toLowerCase();
   const filtered=!q?list:list.filter(r=>{
-    const itemText=(Array.isArray(r.items)?r.items:[]).map(x=>clean(x.productName)+' '+clean(x.productCode)).join(' ');
-    return [r.customerName,r.invoiceNo,r.paymentMethod,r.status,itemText].some(v=>clean(v).toLowerCase().includes(q));
+    return [r.customerName,r.invoiceNo,r.paymentMethod,r.status].some(v=>clean(v).toLowerCase().includes(q));
   });
   return filtered.slice().sort(salesSort);
 }
@@ -407,10 +406,10 @@ function renderSales(){
       '<td data-col="date">'+esc(dateText(r.activityDate))+'</td>'+
       '<td data-col="customer" class="customer">'+esc(r.customerName||'Unknown Customer')+'</td>'+
       '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
-      '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+ 
       '<td data-col="invoice-total" class="money-cell">'+esc(money(r.invoiceTotal,r.currency))+'</td>'+ 
       '<td data-col="cash-payment" class="money-cell'+((Array.isArray(r.cashPayments)&&r.cashPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
       '<td data-col="bank-payment" class="money-cell'+((Array.isArray(r.bankPayments)&&r.bankPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
+      '<td data-col="balance" class="money-cell">'+esc(money(r.outstanding,r.currency))+'</td>'+
       '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
       '<td data-col="status">'+badge(r.status)+'</td>'+
     '</tr>'
