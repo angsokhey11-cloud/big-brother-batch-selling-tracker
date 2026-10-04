@@ -107,6 +107,14 @@ tbody tr:hover{background:#f8fbff}
   .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
   .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
   .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
+  #invoicePreviewModal{padding:0;align-items:stretch;justify-content:stretch;background:rgba(11,30,52,.58)}
+  #invoicePreviewModal .invoice-preview-modal{width:100vw;height:100dvh;max-height:none;border:0;border-radius:0;box-shadow:none}
+  #invoicePreviewModal .modal-head{min-height:48px;padding:8px 10px;background:#fff;position:relative;z-index:2}
+  #invoicePreviewModal .modal-head strong{font-size:12px;max-width:calc(100vw - 54px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #invoicePreviewModal .close{width:34px;height:34px;flex:0 0 34px}
+  #invoicePreviewModal .invoice-preview-body{height:calc(100dvh - 48px);overflow:hidden;background:#eef3f8}
+  #invoicePreviewModal .invoice-preview-body iframe{width:100%;height:100%;background:#eef3f8}
+  #invoicePreviewModal .invoice-preview-body img{width:100%;height:100%;object-fit:contain;background:#111}
 }
 </style>
 </head>
@@ -277,7 +285,10 @@ async function openInvoiceFromTracker(row){
               '#detailModal .modal-head,.history-invoice-actions{display:none!important;}'+
               '#detailLoading{min-height:220px!important;display:flex;align-items:center;justify-content:center;background:#eef3f8!important;}'+
               '#detailContent{margin:0!important;padding:0!important;}'+
-              '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}';
+              '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}'+
+              (window.innerWidth<=700
+                ? '.history-invoice-wrap{padding:2px!important;}#detailModal .modal-card{min-height:100vh!important;}.history-final-invoice{width:100%!important;max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;}'
+                : '');
             doc.head.appendChild(style);
           }
           // Force-hide duplicate chrome as well as CSS, in case old cached rules win.
