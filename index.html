@@ -85,7 +85,7 @@ tbody tr:hover{background:#f8fbff}
 .mobile-picker-option-meta{margin-top:4px;color:#738397;font-size:8.5px;font-weight:800}
 .modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(11,30,52,.45);display:flex;align-items:center;justify-content:center;padding:14px}
 .modal-backdrop[hidden]{display:none}
-.modal{width:min(560px,100%);max-height:86vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid #d7e0eb;box-shadow:0 20px 50px rgba(11,30,52,.24)}
+.modal{width:min(560px,100%);max-height:86vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid #d7e0eb;box-shadow:0 20px 50px rgba(11,30,52,.24)}.invoice-preview-modal{width:min(980px,96vw);height:min(90vh,980px);overflow:hidden;display:flex;flex-direction:column}.invoice-preview-body{flex:1;min-height:0;padding:0;background:#eef3f8}.invoice-preview-body img,.invoice-preview-body iframe{display:block;width:100%;height:100%;border:0;object-fit:contain;background:#fff}.invoice-preview-loading{height:100%;display:flex;align-items:center;justify-content:center;color:#667085;font-size:12px;font-weight:800}
 .modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #edf1f5}
 .modal-head strong{color:var(--navy);font-size:14px}.close{border:0;background:#eef3f8;border-radius:8px;width:30px;height:30px;color:var(--navy);font-weight:900;cursor:pointer}
 .modal-body{padding:12px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:10px}
@@ -181,6 +181,13 @@ tbody tr:hover{background:#f8fbff}
   </div>
 </div>
 
+<div id="invoicePreviewModal" class="modal-backdrop" hidden>
+  <div class="modal invoice-preview-modal" role="dialog" aria-modal="true" aria-labelledby="invoicePreviewTitle">
+    <div class="modal-head"><strong id="invoicePreviewTitle">Invoice Preview</strong><button id="closeInvoicePreview" class="close" type="button">×</button></div>
+    <div id="invoicePreviewBody" class="invoice-preview-body"><div class="invoice-preview-loading">Loading invoice preview…</div></div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -214,6 +221,9 @@ function paymentBadge(v){return '<span class="badge badge-neutral">'+esc(v||'—
 async function openInvoiceFromTracker(row){
   const invoiceId=clean(row?.invoiceId),invoiceNo=clean(row?.invoiceNo);
   if(!invoiceId&&!invoiceNo)return;
+  $('invoicePreviewTitle').textContent=(invoiceNo||'Invoice')+' · '+clean(row?.customerName||'');
+  $('invoicePreviewBody').innerHTML='<div class="invoice-preview-loading">Loading invoice preview…</div>';
+  $('invoicePreviewModal').hidden=false;
   try{
     // Prefer the stored real/original invoice if one exists.
     if(invoiceId){
@@ -228,19 +238,25 @@ async function openInvoiceFromTracker(row){
         const signedData=await response.json();
         if(!response.ok)throw new Error(signedData.message||'Cannot open real invoice.');
         const signed=signedData.signedURL?.startsWith('http')?signedData.signedURL:SUPABASE_URL+'/storage/v1'+signedData.signedURL;
-        const win=window.open(signed,'_blank','noopener');
-        if(!win)location.href=signed;
+        const isPdf=/\.pdf(?:$|[?#])/i.test(existing.path||'');
+        $('invoicePreviewBody').innerHTML=isPdf
+          ? '<iframe title="Real invoice '+esc(invoiceNo)+'" src="'+esc(signed)+'"></iframe>'
+          : '<img alt="Real invoice '+esc(invoiceNo)+'" src="'+esc(signed)+'">';
         return;
       }
     }
-    // No real picture: reuse Invoice History's live preview. Nothing is saved.
-    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&v=20261004-tracker-preview1';
-    const win=window.open(url,'_blank','noopener');
-    if(!win)location.href=url;
+    // No real picture: embed Invoice History's existing live preview.
+    // Nothing is generated or stored by the tracker.
+    const url='https://angsokhey11-cloud.github.io/invoice-history/?previewInvoiceNo='+encodeURIComponent(invoiceNo)+'&previewInvoiceId='+encodeURIComponent(invoiceId)+'&embed=1&v=20261004-tracker-preview2';
+    $('invoicePreviewBody').innerHTML='<iframe title="Invoice History preview '+esc(invoiceNo)+'" src="'+esc(url)+'"></iframe>';
   }catch(error){
     console.error(error);
-    alert(error?.message||'Cannot open invoice preview.');
+    $('invoicePreviewBody').innerHTML='<div class="invoice-preview-loading">'+esc(error?.message||'Cannot open invoice preview.')+'</div>';
   }
+}
+function closeInvoicePreview(){
+  $('invoicePreviewModal').hidden=true;
+  $('invoicePreviewBody').innerHTML='<div class="invoice-preview-loading">Loading invoice preview…</div>';
 }
 
 function closePicker(){
@@ -423,8 +439,11 @@ $('salesRows').onclick=e=>{
   if(row)openDetail(row);
 };
 $('closeModal').onclick=()=>{$('detailModal').hidden=true};
+$('closeInvoicePreview').onclick=closeInvoicePreview;
+$('invoicePreviewModal').onclick=e=>{if(e.target===$('invoicePreviewModal'))closeInvoicePreview()};
 $('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('detailModal').hidden=true;closePicker()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('invoicePreviewModal').hidden)closeInvoicePreview()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load(false)});
 setInterval(()=>{if(document.visibilityState==='visible')load(false)},10000);
 load(true);
