@@ -251,25 +251,45 @@ async function openInvoiceFromTracker(row){
     $('invoicePreviewBody').innerHTML='<iframe id="trackerInvoiceHistoryFrame" title="Invoice History preview '+esc(invoiceNo)+'" src="'+esc(url)+'"></iframe>';
     const frame=$('trackerInvoiceHistoryFrame');
     frame.addEventListener('load',()=>{
-      // Same-origin cleanup: Batch Tracker owns the outer modal, so remove
-      // Invoice History's duplicate modal chrome even if its page cache is stale.
-      try{
-        const doc=frame.contentDocument;
-        if(!doc)return;
-        const style=doc.createElement('style');
-        style.id='bbTrackerEmbeddedInvoiceCleanup';
-        style.textContent=
-          'html,body{margin:0!important;background:#eef3f8!important;overflow:auto!important;}'+
-          '.main,.sidebar,#floatingActionMenu,#editModal{display:none!important;}'+
-          '#detailModal.modal{position:static!important;inset:auto!important;display:block!important;background:transparent!important;padding:0!important;overflow:visible!important;z-index:auto!important;}'+
-          '#detailModal .modal-card{width:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;overflow:visible!important;}'+
-          '#detailModal .modal-head,.history-invoice-actions{display:none!important;}'+
-          '#detailLoading{min-height:220px!important;display:flex;align-items:center;justify-content:center;background:#eef3f8!important;}'+
-          '#detailContent{margin:0!important;padding:0!important;}'+
-          '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}';
-        doc.head.appendChild(style);
-      }catch(error){console.warn('Embedded invoice cleanup:',error)}
-    },{once:true});
+      // Invoice History first loads a wrapper, then rewrites its document.
+      // Wait for the FINAL document (#detailModal) before applying cleanup.
+      let tries=0;
+      const timer=setInterval(()=>{
+        tries++;
+        try{
+          const doc=frame.contentDocument;
+          if(!doc)return;
+          const modal=doc.getElementById('detailModal');
+          const printArea=doc.getElementById('historyInvoicePrintArea');
+          if(!modal||!printArea){
+            if(tries>=120)clearInterval(timer);
+            return;
+          }
+          let style=doc.getElementById('bbTrackerEmbeddedInvoiceCleanup');
+          if(!style){
+            style=doc.createElement('style');
+            style.id='bbTrackerEmbeddedInvoiceCleanup';
+            style.textContent=
+              'html,body{margin:0!important;background:#eef3f8!important;overflow:auto!important;}'+
+              '.main,.sidebar,#floatingActionMenu,#editModal{display:none!important;}'+
+              '#detailModal.modal{position:static!important;inset:auto!important;display:block!important;background:transparent!important;padding:0!important;overflow:visible!important;z-index:auto!important;}'+
+              '#detailModal .modal-card{width:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;overflow:visible!important;}'+
+              '#detailModal .modal-head,.history-invoice-actions{display:none!important;}'+
+              '#detailLoading{min-height:220px!important;display:flex;align-items:center;justify-content:center;background:#eef3f8!important;}'+
+              '#detailContent{margin:0!important;padding:0!important;}'+
+              '.history-invoice-wrap{padding:8px!important;background:#eef3f8!important;overflow:hidden!important;}';
+            doc.head.appendChild(style);
+          }
+          // Force-hide duplicate chrome as well as CSS, in case old cached rules win.
+          modal.querySelector('.modal-head')?.setAttribute('style','display:none!important');
+          modal.querySelector('.history-invoice-actions')?.setAttribute('style','display:none!important');
+          doc.querySelector('.main')?.setAttribute('style','display:none!important');
+          clearInterval(timer);
+        }catch(error){
+          if(tries>=120){clearInterval(timer);console.warn('Embedded invoice cleanup:',error)}
+        }
+      },100);
+    });
   }catch(error){
     console.error(error);
     $('invoicePreviewBody').innerHTML='<div class="invoice-preview-loading">'+esc(error?.message||'Cannot open invoice preview.')+'</div>';
