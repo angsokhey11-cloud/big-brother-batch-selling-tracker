@@ -103,7 +103,7 @@ tbody tr:hover{background:#f8fbff}
   td[data-col="customer"]{padding-right:76px;font-size:10.5px}
   td[data-col="invoice"]{margin-top:3px;font-size:9.5px}
   td[data-col="sold"]{clear:both;margin-top:6px;padding:7px 8px;background:#f7f9fc;border-radius:8px;font-size:9px}
-  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
+  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}.mobile-empty-payment{display:none!important}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
   .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
   .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
   .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
@@ -285,8 +285,8 @@ function renderSales(){
       '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
       '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+ 
       '<td data-col="invoice-total" class="money-cell">'+esc(money(r.invoiceTotal,r.currency))+'</td>'+ 
-      '<td data-col="cash-payment" class="money-cell">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
-      '<td data-col="bank-payment" class="money-cell">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
+      '<td data-col="cash-payment" class="money-cell'+((Array.isArray(r.cashPayments)&&r.cashPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
+      '<td data-col="bank-payment" class="money-cell'+((Array.isArray(r.bankPayments)&&r.bankPayments.some(x=>num(x.amount)>0))?'':' mobile-empty-payment')+'">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
       '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
       '<td data-col="status">'+badge(r.status)+'</td>'+
     '</tr>'
