@@ -47,7 +47,7 @@ tbody tr{cursor:pointer}
 tbody tr:hover{background:#f8fbff}
 .customer{font-weight:900;color:var(--navy)}
 .invoice{font-weight:900;color:#2f6fed;white-space:nowrap}
-.sold-stock{color:#2f4157;font-weight:750;line-height:1.35}
+.sold-stock{color:#2f4157;font-weight:750;line-height:1.35}.money-cell{font-weight:850;white-space:nowrap;color:#203f63}
 .badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:8.5px;font-weight:900;white-space:nowrap}
 .badge-paid{background:#e9f7ef;color:#137a45}
 .badge-unpaid,.badge-overdue{background:#fff0f1;color:#b73742}
@@ -103,7 +103,7 @@ tbody tr:hover{background:#f8fbff}
   td[data-col="customer"]{padding-right:76px;font-size:10.5px}
   td[data-col="invoice"]{margin-top:3px;font-size:9.5px}
   td[data-col="sold"]{clear:both;margin-top:6px;padding:7px 8px;background:#f7f9fc;border-radius:8px;font-size:9px}
-  td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
+  td[data-col="invoice-total"],td[data-col="cash-payment"],td[data-col="bank-payment"]{margin-top:5px;padding:5px 7px;background:#f8fafc;border-radius:7px;font-size:9px}td[data-col="invoice-total"]::before{content:"Total Invoice: ";font-weight:900;color:#53667b}td[data-col="cash-payment"]::before{content:"Cash: ";font-weight:900;color:#53667b}td[data-col="bank-payment"]::before{content:"Bank: ";font-weight:900;color:#53667b}td[data-col="payment"],td[data-col="status"]{display:inline-block;margin-top:6px;margin-right:4px}
   .section-head{padding:9px 10px}.section-head strong{font-size:12px}.summary-list{grid-template-columns:1fr}
   .summary-row,.summary-row:nth-last-child(-n+2){border-bottom:1px solid #edf1f5;padding:8px 10px}.summary-row:last-child{border-bottom:0}
   .detail-grid{grid-template-columns:1fr 1fr}.modal{max-height:90vh}
@@ -154,7 +154,7 @@ tbody tr:hover{background:#f8fbff}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Customer</th><th>Invoice No.</th><th>Sold Stock</th><th>Payment</th><th>Status</th></tr></thead>
+          <thead><tr><th>Date</th><th>Customer</th><th>Invoice No.</th><th>Sold Stock</th><th>Total Invoice</th><th>Cash Payment</th><th>Bank Payment</th><th>Payment</th><th>Status</th></tr></thead>
           <tbody id="salesRows"></tbody>
         </table>
       </div>
@@ -193,6 +193,8 @@ const clean=v=>String(v==null?'':v).trim();
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
 const esc=v=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 const qty=v=>num(v).toLocaleString('en-US',{maximumFractionDigits:2});
+const money=(amount,currency)=>{const c=clean(currency).toUpperCase()||'USD',n=num(amount);return (c==='KHR'?'KHR ':'USD ')+n.toLocaleString('en-US',{minimumFractionDigits:c==='USD'?2:0,maximumFractionDigits:c==='USD'?2:0})};
+function paymentAmounts(list){const rows=Array.isArray(list)?list:[];return rows.length?rows.map(x=>money(x.amount,x.currency)).join(' + '):'—'}
 let session=null,data=null,selectedBatchId='',loadingNow=false;
 
 function readSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch(_){return null}}
@@ -281,7 +283,10 @@ function renderSales(){
       '<td data-col="date">'+esc(dateText(r.activityDate))+'</td>'+
       '<td data-col="customer" class="customer">'+esc(r.customerName||'Unknown Customer')+'</td>'+
       '<td data-col="invoice" class="invoice">'+esc(r.invoiceNo||'—')+'</td>'+
-      '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+
+      '<td data-col="sold" class="sold-stock">'+esc(soldText(r.items)||'—')+'</td>'+ 
+      '<td data-col="invoice-total" class="money-cell">'+esc(money(r.invoiceTotal,r.currency))+'</td>'+ 
+      '<td data-col="cash-payment" class="money-cell">'+esc(paymentAmounts(r.cashPayments))+'</td>'+ 
+      '<td data-col="bank-payment" class="money-cell">'+esc(paymentAmounts(r.bankPayments))+'</td>'+
       '<td data-col="payment">'+paymentBadge(r.paymentMethod)+'</td>'+
       '<td data-col="status">'+badge(r.status)+'</td>'+
     '</tr>'
@@ -308,6 +313,9 @@ function openDetail(row){
       '<div class="detail"><small>Customer</small><strong>'+esc(row?.customerName||'—')+'</strong></div>'+
       '<div class="detail"><small>Invoice</small><strong>'+esc(row?.invoiceNo||'—')+'</strong></div>'+
       '<div class="detail"><small>Date</small><strong>'+esc(dateText(row?.activityDate))+'</strong></div>'+
+      '<div class="detail"><small>Total Invoice</small><strong>'+esc(money(row?.invoiceTotal,row?.currency))+'</strong></div>'+ 
+      '<div class="detail"><small>Cash Payment</small><strong>'+esc(paymentAmounts(row?.cashPayments))+'</strong></div>'+ 
+      '<div class="detail"><small>Bank Payment</small><strong>'+esc(paymentAmounts(row?.bankPayments))+'</strong></div>'+ 
       '<div class="detail"><small>Payment / Status</small><strong>'+esc((row?.paymentMethod||'—')+' · '+(row?.status||'—'))+'</strong></div>'+
     '</div>'+
     '<div class="detail-items">'+items.map(x=>
