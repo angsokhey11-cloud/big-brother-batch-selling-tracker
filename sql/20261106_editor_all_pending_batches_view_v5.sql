@@ -329,10 +329,10 @@ begin
     'productSummary',v_product_summary
   );
 end;
-$function$
+$function$;
 
 
 -- This RPC has always been read-only and checks the active application user internally.
 -- Restrict the API entrypoint to signed-in users; unauthenticated callers cannot invoke.
-REVOKE EXECUTE ON FUNCTION public.bb_sales_support_batch_selling_tracker(text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.bb_sales_support_batch_selling_tracker(text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.bb_sales_support_batch_selling_tracker(text) TO authenticated;
