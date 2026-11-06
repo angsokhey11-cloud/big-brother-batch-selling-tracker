@@ -221,7 +221,7 @@ async function rpc(name,args){await ensureSession();const call=()=>fetch(SUPABAS
 
 function dateText(v){if(!v)return '—';const d=new Date(String(v).length===10?v+'T00:00:00':v);return Number.isNaN(d.getTime())?clean(v):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
 function locationText(b){return clean(b?.locationName)||clean(b?.locationCode)||'No location'}
-function batchOptionText(b){let t=clean(b.batchId)+' · '+locationText(b);if(data?.isAdmin&&clean(b.salesmanName))t+=' · '+clean(b.salesmanName);return t}
+function batchOptionText(b){let t=clean(b.batchId)+' · '+locationText(b);if(data?.canViewAll&&clean(b.salesmanName))t+=' · '+clean(b.salesmanName);return t}
 function soldText(items){return (Array.isArray(items)?items:[]).map(x=>clean(x.productName)+' ['+qty(x.qty)+']').join(', ')}
 function statusClass(v){const s=clean(v).toLowerCase();if(s==='paid')return'badge-paid';if(s.includes('partial'))return'badge-partial';if(s.includes('unpaid')||s.includes('overdue'))return'badge-unpaid';return'badge-neutral'}
 function badge(v){return '<span class="badge '+statusClass(v)+'">'+esc(v||'—')+'</span>'}
@@ -353,11 +353,11 @@ function renderBatchPicker(){
   $('mobilePickerBtn').disabled=!list.length;
   $('mobileBatchId').textContent=selected?clean(selected.batchId):'No selling batch';
   $('mobileBatchLocation').textContent=selected?locationText(selected):'';
-  $('mobileBatchMeta').textContent=selected?(dateText(selected.batchDate)+(data?.isAdmin&&clean(selected.salesmanName)?' · '+clean(selected.salesmanName):'')):'';
+  $('mobileBatchMeta').textContent=selected?(dateText(selected.batchDate)+(data?.canViewAll&&clean(selected.salesmanName)?' · '+clean(selected.salesmanName):'')):'';
 
   $('mobilePickerMenu').innerHTML=list.map(b=>{
     const active=selected&&clean(b.batchId)===clean(selected.batchId);
-    const meta=dateText(b.batchDate)+(data?.isAdmin&&clean(b.salesmanName)?' · '+clean(b.salesmanName):'');
+    const meta=dateText(b.batchDate)+(data?.canViewAll&&clean(b.salesmanName)?' · '+clean(b.salesmanName):'');
     return '<button type="button" class="mobile-picker-option'+(active?' selected':'')+'" data-batch-id="'+esc(b.batchId)+'" role="option" aria-selected="'+(active?'true':'false')+'">'+
       '<span class="mobile-picker-option-top"><strong>'+esc(b.batchId)+'</strong><span class="mobile-picker-option-location">'+esc(locationText(b))+'</span></span>'+
       '<span class="mobile-picker-option-meta">'+esc(meta)+'</span>'+
@@ -368,7 +368,7 @@ function renderBatchPicker(){
   if(selected){
     meta.push('<span class="chip">'+esc(locationText(selected))+'</span>');
     meta.push('<span class="chip">'+esc(dateText(selected.batchDate))+'</span>');
-    if(data?.isAdmin&&clean(selected.salesmanName))meta.push('<span class="chip">'+esc(selected.salesmanName)+'</span>');
+    if(data?.canViewAll&&clean(selected.salesmanName))meta.push('<span class="chip">'+esc(selected.salesmanName)+'</span>');
     meta.push('<span class="chip">'+esc(selected.status||'Batch')+'</span>');
   }
   $('batchMeta').innerHTML=meta.join('');
@@ -451,8 +451,10 @@ function openDetail(row){
 function render(){
   const st=data?.staff||{};
   $('profile').textContent=data?.isAdmin
-    ? '🛡 Admin · All selling batches'
-    : '👤 '+(st.staffName||'Staff')+' · '+(st.staffId||'—')+' · Your assigned selling batches only';
+    ? '🛡 Admin · All pending selling batches'
+    : data?.canViewAll
+      ? '✏️ Editor · All pending selling batches'
+      : '👤 '+(st.staffName||'Staff')+' · '+(st.staffId||'—')+' · Your assigned selling batches only';
   renderBatchPicker();
   renderSales();
   renderSummary();
