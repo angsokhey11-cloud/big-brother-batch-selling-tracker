@@ -462,6 +462,7 @@ function render(){
   $('content').hidden=false;
 }
 
+let lastSuccessfulLoadAt=0;
 async function load(showLoader){
   if(loadingNow)return;
   loadingNow=true;
@@ -472,6 +473,7 @@ async function load(showLoader){
     const next=await rpc('bb_sales_support_batch_selling_tracker',{p_batch_id:selectedBatchId||null});
     if(!next?.success)throw new Error('Could not load Batch Selling Tracker.');
     data=next;
+    lastSuccessfulLoadAt=Date.now();
     selectedBatchId=clean(next?.selectedBatch?.batchId)||selectedBatchId;
     render();
   }catch(e){
@@ -521,8 +523,13 @@ $('invoicePreviewModal').onclick=e=>{if(e.target===$('invoicePreviewModal'))clos
 $('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').hidden=true};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('detailModal').hidden=true;closePicker()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('invoicePreviewModal').hidden)closeInvoicePreview()});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load(false)});
-setInterval(()=>{if(document.visibilityState==='visible')load(false)},10000);
+// The read-only tracker no longer polls every 10 seconds.
+ // Manual Refresh and switching batches still load immediately.
+ // Returning to a stale tab refreshes once; inactive tabs stay idle.
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible' &&
+    Date.now()-lastSuccessfulLoadAt>=60000)void load(false);
+});
 load(true);
 })();
 </script>
